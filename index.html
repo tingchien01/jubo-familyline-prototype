@@ -165,12 +165,6 @@
   .kv .k{color:var(--text-2);}
   .kv .v{color:var(--text);font-weight:700;}
 
-  .profile2col{display:flex;gap:16px;}
-  .profile2col .col{flex:1;min-width:0;}
-  .profile2col .kvi{font-size:12.5px;padding:4px 0;}
-  .profile2col .kvi .k3{color:var(--text-2);}
-  .profile2col .link{color:#2F6FB0;font-size:12.5px;margin-top:8px;cursor:pointer;}
-
   .slot-btn{width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:14px;cursor:pointer;}
   .slot-btn.selected{border-color:var(--primary);background:var(--primary-lighter);color:var(--primary);font-weight:700;}
 
@@ -347,8 +341,6 @@ const bookingSlots = [
   { date:'115/07/29 (二)', times:['14:00-15:00'] },
   { date:'115/07/31 (四)', times:['10:00-11:00','15:30-16:30'] },
 ];
-
-const boundFamily = [ ['吳佳舒','女兒'], ['凱西','女兒'], ['撿黃金','女兒'], ['赫爾曼','兒子'], ['劉仲凱','兒子'] ];
 
 const tutorialItems = ['帳單繳費','活動行程','照片花絮','生理數值','外診記錄','預約探訪','個人設定'];
 
@@ -600,22 +592,13 @@ function cardHTML(key){
 }
 
 function profileCardHTML(){
-  return `<div class="flexcard" style="max-width:280px;"><div class="strip"></div><div class="body">
-    <div class="profile2col">
-      <div class="col">
-        <div class="fc-title" style="font-size:14px;">我的資料</div>
-        <div class="kvi"><span class="k3">姓名</span>　${FAMILY.name}</div>
-        <div class="kvi"><span class="k3">性別</span>　女性</div>
-        <div class="kvi"><span class="k3">個案</span>　${RESIDENT.name}</div>
-        <div class="kvi"><span class="k3">關係</span>　${FAMILY.relation}</div>
-        <div class="link" onclick="openOverlay('bind')">綁定服務對象</div>
-      </div>
-      <div class="col">
-        <div class="fc-title" style="font-size:14px;">綁定家人</div>
-        ${boundFamily.slice(0,3).map(f=>`<div class="kvi"><span class="k3">${f[0]}</span>　${f[1]}</div>`).join('')}
-        <div class="link" onclick="openOverlay('familylist')">顯示全部</div>
-      </div>
-    </div>
+  return `<div class="flexcard"><div class="strip"></div><div class="body">
+    <div class="fc-title">我的資料</div>
+    <div class="fc-row"><span class="fk">姓名</span><span class="fv">${FAMILY.name}</span></div>
+    <div class="fc-row"><span class="fk">性別</span><span class="fv">女性</span></div>
+    <div class="fc-row"><span class="fk">個案</span><span class="fv">${RESIDENT.name}</span></div>
+    <div class="fc-row"><span class="fk">關係</span><span class="fv">${FAMILY.relation}</span></div>
+    <button class="fc-more" onclick="openOverlay('bind')">綁定其他住民</button>
   </div></div>`;
 }
 
@@ -663,7 +646,6 @@ function liffTopbarHTML(){
     vitals:'生理數值',
     outpatient:'外診記錄',
     booking:'預約探訪',
-    familylist:'綁定家人',
   };
   const o = state.overlay;
   if(!o) return '';
@@ -833,11 +815,6 @@ function bookingHTML(){
   `;
 }
 
-// ---- family list ----
-function familylistHTML(){
-  return boundFamily.map(f=>`<div class="list-item" style="cursor:default;"><div class="main"><div class="l1">${f[0]}</div><div class="l2">${f[1]}</div></div></div>`).join('');
-}
-
 // ---------- Render ----------
 function render(){
   document.getElementById('chatTopbar').innerHTML = chatTopbarHTML();
@@ -854,7 +831,6 @@ function render(){
     vitals:vitalsHTML,
     outpatient:outpatientHTML,
     booking:bookingHTML,
-    familylist:familylistHTML,
   };
   document.getElementById('liffBody').innerHTML = state.overlay ? bodyMap[state.overlay]() : '';
   document.getElementById('liffOverlay').classList.toggle('open', !!state.overlay);
