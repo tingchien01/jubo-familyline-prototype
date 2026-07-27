@@ -184,6 +184,51 @@
   .datatable td{padding:6px 8px;border-bottom:1px solid var(--border);}
 
   .toast{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:8px 16px;border-radius:20px;font-size:12.5px;display:none;z-index:50;}
+  /* ---- 收據照片 ---- */
+  .receipt{background:#FBFAF6;border:1px solid #E2DFD6;border-radius:6px;padding:16px 16px 12px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.13);font-family:"Menlo","Courier New",monospace;position:relative;}
+  .receipt.sm{padding:11px 12px 9px;transform:scale(1);}
+  .receipt::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:8px;
+    background:repeating-linear-gradient(135deg,#FBFAF6 0 6px,transparent 6px 12px);}
+  .rc-org{font-size:12.5px;font-weight:700;color:#333;text-align:center;letter-spacing:1px;}
+  .receipt.sm .rc-org{font-size:11px;}
+  .rc-no{font-size:9.5px;color:#8A8577;text-align:center;margin-top:3px;}
+  .rc-hr{border-top:1px dashed #C9C4B6;margin:8px 0;}
+  .rc-kv{display:flex;justify-content:space-between;font-size:11px;color:#444;padding:2.5px 0;}
+  .receipt.sm .rc-kv{font-size:10px;padding:1.5px 0;}
+  .rc-kv.total{font-size:13px;font-weight:700;color:#222;}
+  .receipt.sm .rc-kv.total{font-size:11.5px;}
+  .rc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+  .rc-status{font-size:10.5px;border:1px solid var(--primary);color:var(--primary-dark);border-radius:3px;padding:2px 8px;}
+  .rc-status.warn{border-color:#C98A2E;color:#C98A2E;}
+  .rc-stamp{font-size:8px;line-height:1.15;color:#C0563E;border:1.5px solid #C0563E;border-radius:50%;
+    width:38px;height:38px;display:flex;align-items:center;justify-content:center;text-align:center;
+    transform:rotate(-14deg);opacity:.78;}
+  .receipt.sm .rc-stamp{width:30px;height:30px;font-size:7px;}
+
+  /* ---- 資料表格 ---- */
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:6px;}
+  table.dtable{border-collapse:collapse;width:max-content;min-width:100%;font-size:11.5px;}
+  table.dtable th{background:#6E7A80;color:#fff;font-weight:600;text-align:left;padding:7px 9px;
+    white-space:nowrap;border-right:1px solid rgba(255,255,255,.22);line-height:1.3;}
+  table.dtable th:last-child{border-right:none;}
+  table.dtable td{padding:7px 9px;border-top:1px solid var(--border);border-right:1px solid var(--border);
+    color:var(--text);vertical-align:middle;background:#fff;}
+  table.dtable td:last-child{border-right:none;}
+  table.dtable td.nowrap{white-space:nowrap;}
+  table.dtable tr.hl td{background:#FCFAD9;}
+
+  /* ---- 預約時段 ---- */
+  .slotday{display:flex;gap:10px;padding:10px 2px;border-bottom:1px solid var(--border);}
+  .slotday .sd-date{flex:0 0 108px;font-size:12.5px;font-weight:700;color:var(--text);padding-top:3px;}
+  .slotday .sd-times{display:flex;flex-wrap:wrap;gap:6px;}
+  .slot-chip{font-size:11.5px;color:var(--primary-dark);background:var(--primary-lighter);
+    border:1px solid var(--primary-light);border-radius:14px;padding:4px 10px;}
+  .callbox{margin-top:18px;background:var(--primary-lighter);border:1px solid var(--primary-light);
+    border-radius:8px;padding:16px;text-align:center;}
+  .callbox .cb-title{font-size:14px;font-weight:700;color:var(--primary-dark);margin-bottom:6px;}
+  .callbox .cb-phone{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.5px;margin-bottom:12px;}
+  .callbox .cb-note{font-size:11px;color:var(--text-2);margin-top:10px;line-height:1.6;}
 </style>
 </head>
 <body>
@@ -215,45 +260,97 @@ const ORG_NAME = '智齡住宿好安心';
 const LIFF_URL = 'release-family-line-web.jubo.health';
 
 const bills = [
-  { month:'2026年07月', amount:32800, status:'待繳', items:[['住宿費',24000],['伙食費',6000],['耗材費',2800]] },
-  { month:'2026年06月', amount:31500, status:'已繳', items:[['住宿費',24000],['伙食費',6000],['耗材費',1500]] },
-  { month:'2026年05月', amount:32800, status:'已繳', items:[['住宿費',24000],['伙食費',6000],['耗材費',2800]] },
+  { ym:'115/07', month:'115年07月', amount:32800, status:'待繳', no:'R1150700318', items:[['住宿費',24000],['伙食費',6000],['耗材費',2800]] },
+  { ym:'115/06', month:'115年06月', amount:31500, status:'已繳', no:'R1150600297', items:[['住宿費',24000],['伙食費',6000],['耗材費',1500]] },
+  { ym:'115/05', month:'115年05月', amount:32800, status:'已繳', no:'R1150500274', items:[['住宿費',24000],['伙食費',6000],['耗材費',2800]] },
+  { ym:'115/04', month:'115年04月', amount:32100, status:'已繳', no:'R1150400251', items:[['住宿費',24000],['伙食費',6000],['耗材費',2100]] },
+  { ym:'115/03', month:'115年03月', amount:33400, status:'已繳', no:'R1150300228', items:[['住宿費',24000],['伙食費',6000],['耗材費',3400]] },
+  { ym:'115/02', month:'115年02月', amount:31900, status:'已繳', no:'R1150200205', items:[['住宿費',24000],['伙食費',6000],['耗材費',1900]] },
+  { ym:'115/01', month:'115年01月', amount:32800, status:'已繳', no:'R1150100182', items:[['住宿費',24000],['伙食費',6000],['耗材費',2800]] },
+  { ym:'114/12', month:'114年12月', amount:32600, status:'已繳', no:'R1141200159', items:[['住宿費',24000],['伙食費',6000],['耗材費',2600]] },
+  { ym:'114/11', month:'114年11月', amount:31200, status:'已繳', no:'R1141100136', items:[['住宿費',24000],['伙食費',6000],['耗材費',1200]] },
+  { ym:'114/10', month:'114年10月', amount:32800, status:'已繳', no:'R1141000113', items:[['住宿費',24000],['伙食費',6000],['耗材費',2800]] },
+  { ym:'114/09', month:'114年09月', amount:33100, status:'已繳', no:'R1140900090', items:[['住宿費',24000],['伙食費',6000],['耗材費',3100]] },
+  { ym:'114/08', month:'114年08月', amount:32400, status:'已繳', no:'R1140800067', items:[['住宿費',24000],['伙食費',6000],['耗材費',2400]] },
 ];
 const bankInfo = '玉山銀行(808) 1234-567-890123';
 
-const activityToday = [ ['10:30','生日派對'],['11:00','象棋'],['14:00','健康操'],['17:00','音樂欣賞'],['21:00','健康操'] ];
-const weekDays = ['日','一','二','三','四','五','六'];
-const weekDates = [19,20,21,22,23,24,25];
-const weekActiveIdx = 3;
-const weekSchedule = { 22: activityToday }; // only today has data, rest empty
+// 活動行程：近一年（機構每月約辦一次）
+const activityCols = ['舉辦時間','活動類別','活動名稱','活動屬性','參與度','情緒狀況','社交互動狀況','滿意度'];
+const activities = [
+  ['115/07/07','社工活動-例行性活動','音樂欣賞','靜態,','簡短回應','愉悅','頻繁','非常滿意'],
+  ['115/06/18','社工活動-小團體活動','園藝治療','靜態,小組,','肢體語言/圖片溝通','穩定','偶有','滿意'],
+  ['115/05/20','社工活動-節慶活動','端午節慶祝會','動態,','簡短回應','愉悅','頻繁','非常滿意'],
+  ['115/04/15','社工活動-例行性活動','桌遊時間','靜態,小組,','簡短回應','穩定','偶有','滿意'],
+  ['115/03/12','社工活動-例行性活動','健康操','動態,','肢體語言/圖片溝通','愉悅','頻繁','非常滿意'],
+  ['115/02/06','社工活動-節慶活動','元宵猜燈謎','靜態,','簡短回應','愉悅','頻繁','非常滿意'],
+  ['115/01/07','社工活動-節慶活動','住民尾牙活動','動態,','簡短回應','愉悅','頻繁','非常滿意'],
+  ['114/12/10','社工活動-小團體活動','聖誕音樂會','靜態,小組,','肢體語言/圖片溝通','穩定','偶有','滿意'],
+  ['114/11/12','社工活動-小團體活動','電影欣賞','靜態,小組,','肢體語言/圖片溝通','穩定','偶有','滿意'],
+  ['114/10/09','社工活動-例行性活動','重陽敬老活動','動態,','簡短回應','愉悅','頻繁','非常滿意'],
+  ['114/09/16','社工活動-例行性活動','懷舊團體','靜態,小組,','簡短回應','穩定','偶有','滿意'],
+  ['114/08/21','社工活動-例行性活動','測試順序','靜態,','簡短回應','愉悅','頻繁','非常滿意'],
+];
 
+// 照片花絮：近半年（115/02 - 115/07）
 const photoMonthGroups = [
-  { date:'2026/7/21 (二)', cats:[
-    { name:'運動會', photos:['#8FA8B8','#7C97A8'] },
-    { name:'電影欣賞', photos:['#4A4A4A','#5C5C5C'] },
+  { date:'115/07/07 (一)', cats:[
+    { name:'音樂欣賞', photos:['#8FA8B8','#7C97A8'] },
   ]},
-  { date:'2026/7/2 (四)', cats:[
-    { name:'音樂欣賞', photos:['#D8A8B8'] },
+  { date:'115/06/18 (三)', cats:[
+    { name:'園藝治療', photos:['#8FB89A','#7CA889'] },
+  ]},
+  { date:'115/05/20 (二)', cats:[
+    { name:'端午節慶祝會', photos:['#D8A8B8','#C89AA8','#B88C9A'] },
+  ]},
+  { date:'115/04/15 (二)', cats:[
+    { name:'桌遊時間', photos:['#B8A88F'] },
+  ]},
+  { date:'115/03/12 (三)', cats:[
+    { name:'健康操', photos:['#A8B8D8','#98A8C8'] },
+  ]},
+  { date:'115/02/06 (五)', cats:[
+    { name:'元宵猜燈謎', photos:['#D8B88F','#C8A87C'] },
   ]},
 ];
 
+// 生理數值：近兩個月（115/06 - 115/07）
+const vitalsRecords = [
+  { dt:'115/07/22 07:30', bp:'128/76', pulse:72, temp:'36.5', sugar:98,  weight:'52.4' },
+  { dt:'115/07/15 07:20', bp:'132/80', pulse:75, temp:'36.4', sugar:105, weight:'52.6' },
+  { dt:'115/07/08 07:35', bp:'126/74', pulse:70, temp:'36.6', sugar:94,  weight:'52.3' },
+  { dt:'115/07/01 07:25', bp:'135/82', pulse:78, temp:'36.5', sugar:112, weight:'52.8' },
+  { dt:'115/06/24 07:30', bp:'129/78', pulse:73, temp:'36.3', sugar:101, weight:'52.5' },
+  { dt:'115/06/17 07:15', bp:'124/72', pulse:69, temp:'36.5', sugar:96,  weight:'52.2' },
+  { dt:'115/06/10 07:40', bp:'131/79', pulse:74, temp:'36.7', sugar:108, weight:'52.7' },
+  { dt:'115/06/03 07:20', bp:'127/75', pulse:71, temp:'36.4', sugar:99,  weight:'52.4' },
+];
+
+// 外診記錄：近半年（115/02 - 115/07）
+const outpatientCols = ['外診時間/巡診日期','醫療院所','科別','指定醫師','目的'];
 const outpatients = [
-  { date:'2026/07/25', time:'09:30', dept:'心臟內科', hospital:'台北榮總', companion:'照服員 林小姐', status:'預定中' },
-  { date:'2026/07/10', time:'14:00', dept:'骨科', hospital:'台北榮總', companion:'照服員 林小姐', status:'已完成', summary:'醫師建議持續觀察血壓，下次回診調整用藥；骨密度狀況穩定，維持現行復健安排。' },
-  { date:'2026/06/20', time:'10:00', dept:'眼科', hospital:'振興醫院', companion:'家屬 陳美玲', status:'已完成', summary:'白內障追蹤穩定，暫不需手術，半年後回診。' },
+  { dt:'115/07/07 08:00', hospital:'義大醫院', dept:'', doctor:'', purpose:'門診' },
+  { dt:'115/05/26 08:00', hospital:'義大醫院', dept:'家醫科', doctor:'蕭醫師', purpose:'門診', hl:true },
+  { dt:'115/05/14',       hospital:'',         dept:'',       doctor:'',       purpose:'巡診' },
+  { dt:'115/04/30 08:50', hospital:'義大醫院', dept:'心內科', doctor:'尤登弘', purpose:'門診' },
+  { dt:'115/03/18 09:20', hospital:'義大醫院', dept:'神經內科', doctor:'陳醫師', purpose:'門診' },
+  { dt:'115/02/25',       hospital:'',         dept:'',       doctor:'',       purpose:'巡診' },
 ];
 
-const slots = ['今日下午（14:00）','明日上午（10:30）','明日下午（14:00）','後天上午（10:30）','後天下午（14:00）'];
-
-const announcements = [
-  { title:'中秋節活動通知', date:'2026/07/20', content:'本週五（7/25）下午 2 點將於一樓活動中心舉辦中秋節慶祝活動，歡迎家屬蒞臨參加，現場備有月餅茶點。' },
-  { title:'機構環境消毒公告', date:'2026/07/15', content:'本機構將於 7/22（三）進行例行環境消毒作業，當日探訪時間將調整為下午 3 點後，造成不便敬請見諒。' },
-  { title:'夏季防蚊防暑提醒', date:'2026/07/05', content:'近期天氣炎熱，機構已加強房內降溫與補水措施，如家屬攜帶食物探訪，請避免高糖分冷飲，謝謝配合。' },
+// 預約探訪：當月（115/07）開放時段，第一階段僅查詢、預約請電洽
+const bookingMonth = '115年07月';
+const orgPhone = '(07) 123-4567 分機 208';
+const bookingSlots = [
+  { date:'115/07/24 (四)', times:['10:00-11:00','14:00-15:00'] },
+  { date:'115/07/25 (五)', times:['14:00-15:00','15:30-16:30'] },
+  { date:'115/07/27 (日)', times:['10:00-11:00','14:00-15:00','15:30-16:30'] },
+  { date:'115/07/29 (二)', times:['14:00-15:00'] },
+  { date:'115/07/31 (四)', times:['10:00-11:00','15:30-16:30'] },
 ];
 
 const boundFamily = [ ['吳佳舒','女兒'], ['凱西','女兒'], ['撿黃金','女兒'], ['赫爾曼','兒子'], ['劉仲凱','兒子'] ];
 
-const tutorialItems = ['帳單繳費','活動行程','照片花絮','外診記錄','預約探訪','機構公告','個人設定'];
+const tutorialItems = ['帳單繳費','活動行程','照片花絮','生理數值','外診記錄','預約探訪','個人設定'];
 
 // ---------- Icons (simple teal outline) ----------
 function icon(name){
@@ -265,6 +362,7 @@ function icon(name){
     hospital:`<svg viewBox="0 0 24 24" ${s}><rect x="5" y="4" width="14" height="16" rx="1"/><path d="M12 8v6M9 11h6"/><path d="M9 20v-3h6v3"/></svg>`,
     bell:`<svg viewBox="0 0 24 24" ${s}><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9h16M8 3v4M16 3v4"/><path d="M8.5 14.5l2 2 4.5-4.5"/></svg>`,
     megaphone:`<svg viewBox="0 0 24 24" ${s}><path d="M3 10v4h3l6 4V6l-6 4H3z"/><path d="M14 9a3 3 0 0 1 0 6"/><circle cx="6.5" cy="16.5" r="1.3" fill="currentColor" stroke="none"/></svg>`,
+    vitals:`<svg viewBox="0 0 24 24" ${s}><path d="M3 12h3.5l1.8-4.5 3 9 2.2-6 1.6 3.5H21"/><path d="M5.5 17.5c-1.6-1.6-2.5-3-2.5-4.6"/><path d="M18.5 17.5c1.6-1.6 2.5-3 2.5-4.6"/></svg>`,
     gear:`<svg viewBox="0 0 24 24" ${s}><circle cx="12" cy="9" r="3"/><path d="M12 13c-3 0-5 1.5-5 4v1h10v-1c0-2.5-2-4-5-4z"/><path d="M19 9h1M4 9h1M12 2v1M12 4.5v0"/></svg>`,
     clapper:`<svg viewBox="0 0 24 24" ${s}><path d="M4 9l1-4 14 3-1 4z"/><rect x="4" y="9" width="16" height="11" rx="1"/><circle cx="10" cy="15" r="2.4" fill="currentColor" stroke="none"/><path d="M9.2 13.8l1.6 2.4" stroke="#fff"/></svg>`,
   };
@@ -281,12 +379,6 @@ var state = {
   clock: { h:9, m:54 },
   form: { birth:'', idno:'' },
   billIndex: 0,
-  weekActive: 22,
-  vitalsIgnored: true,
-  opIndex: 0,
-  annIndex: 0,
-  selectedSlot: null,
-  bookingConfirmed: null,
 };
 
 function fmtTime(){
@@ -339,7 +431,7 @@ function submitBinding(){
 // ---------- Rich menu tap -> append conversation ----------
 const FEATURE_LABEL = {
   bill:'帳單繳費', activity:'活動行程', photos:'照片花絮',
-  outpatient:'外診記錄', booking:'預約探訪', notice:'機構公告',
+  vitals:'生理數值', outpatient:'外診記錄', booking:'預約探訪',
   profile:'個人設定', tutorial:'教學影片',
 };
 
@@ -443,18 +535,20 @@ function cardHTML(key){
   if(key==='bill'){
     const b = bills[0];
     return `<div class="flexcard"><div class="strip"></div><div class="body">
-      <div class="fc-title">${RESIDENT.name} 帳單資訊</div>
+      <div class="fc-title">${RESIDENT.name} 帳單收據</div>
       <div class="fc-date">${b.month}</div>
-      <div class="fc-row"><span class="fk">應繳金額</span><span class="fv">NT$ ${b.amount.toLocaleString()}</span></div>
-      <div class="fc-row"><span class="fk">狀態</span><span class="fv">${b.status}</span></div>
+      ${receiptHTML(b, true)}
       <button class="fc-more" onclick="openOverlay('bill')">查看更多</button>
     </div></div>`;
   }
   if(key==='activity'){
+    const a = activities[0];
     return `<div class="flexcard"><div class="strip"></div><div class="body">
-      <div class="fc-title">${RESIDENT.name}活動行程</div>
-      <div class="fc-date">07/22(三)</div>
-      ${activityToday.slice(0,3).map(a=>`<div class="fc-line"><span class="tm">${a[0]}</span>${a[1]}</div>`).join('')}
+      <div class="fc-title">${RESIDENT.name} 活動行程</div>
+      <div class="fc-date">${a[0]}</div>
+      <div class="fc-row"><span class="fk">活動名稱</span><span class="fv">${a[2]}</span></div>
+      <div class="fc-row"><span class="fk">參與度</span><span class="fv">${a[4]}</span></div>
+      <div class="fc-row"><span class="fk">滿意度</span><span class="fv">${a[7]}</span></div>
       <button class="fc-more" onclick="openOverlay('activity')">查看更多</button>
     </div></div>`;
   }
@@ -464,34 +558,42 @@ function cardHTML(key){
       <div class="fc-title">${RESIDENT.name} 照片花絮</div>
       <div class="fc-date">${g.date}</div>
       <div class="fc-row"><span class="fk">最新活動</span><span class="fv">${g.cats[0].name}</span></div>
+      <div class="photo-row" style="margin-top:8px;">${g.cats[0].photos.map(c=>`<div class="photo-thumb" style="background:${c};"></div>`).join('')}</div>
       <button class="fc-more" onclick="openOverlay('photos')">查看更多</button>
+    </div></div>`;
+  }
+  if(key==='vitals'){
+    const v = vitalsRecords[0];
+    return `<div class="flexcard"><div class="strip"></div><div class="body">
+      <div class="fc-title">${RESIDENT.name} 生理數值</div>
+      <div class="fc-date">${v.dt}</div>
+      <div class="fc-row"><span class="fk">血壓</span><span class="fv">${v.bp} mmHg</span></div>
+      <div class="fc-row"><span class="fk">脈搏</span><span class="fv">${v.pulse} 次/分</span></div>
+      <div class="fc-row"><span class="fk">體溫</span><span class="fv">${v.temp} °C</span></div>
+      <div class="fc-row"><span class="fk">血糖</span><span class="fv">${v.sugar} mg/dL</span></div>
+      <div class="fc-row"><span class="fk">體重</span><span class="fv">${v.weight} kg</span></div>
+      <button class="fc-more" onclick="openOverlay('vitals')">查看更多</button>
     </div></div>`;
   }
   if(key==='outpatient'){
     const o = outpatients[0];
     return `<div class="flexcard"><div class="strip"></div><div class="body">
       <div class="fc-title">${RESIDENT.name} 外診記錄</div>
-      <div class="fc-date">${o.date} ${o.time}</div>
-      <div class="fc-row"><span class="fk">科別</span><span class="fv">${o.dept}</span></div>
-      <div class="fc-row"><span class="fk">狀態</span><span class="fv">${o.status}</span></div>
+      <div class="fc-date">${o.dt}</div>
+      <div class="fc-row"><span class="fk">醫療院所</span><span class="fv">${o.hospital||'—'}</span></div>
+      <div class="fc-row"><span class="fk">科別</span><span class="fv">${o.dept||'—'}</span></div>
+      <div class="fc-row"><span class="fk">目的</span><span class="fv">${o.purpose}</span></div>
       <button class="fc-more" onclick="openOverlay('outpatient')">查看更多</button>
     </div></div>`;
   }
   if(key==='booking'){
+    const n = bookingSlots.reduce((a,d)=>a+d.times.length,0);
     return `<div class="flexcard"><div class="strip"></div><div class="body">
       <div class="fc-title">預約探訪</div>
-      <div class="fc-date">選擇您方便的時段</div>
-      <div class="fc-row"><span class="fk">目前開放時段</span><span class="fv">${slots.length} 個</span></div>
+      <div class="fc-date">${bookingMonth}</div>
+      <div class="fc-row"><span class="fk">本月開放時段</span><span class="fv">${n} 個</span></div>
+      <div class="fc-row"><span class="fk">預約方式</span><span class="fv">電洽機構</span></div>
       <button class="fc-more" onclick="openOverlay('booking')">查看更多</button>
-    </div></div>`;
-  }
-  if(key==='notice'){
-    const a = announcements[0];
-    return `<div class="flexcard"><div class="strip"></div><div class="body">
-      <div class="fc-title">機構公告</div>
-      <div class="fc-date">${a.date}</div>
-      <div class="fc-row"><span class="fk">${a.title}</span><span class="fv"></span></div>
-      <button class="fc-more" onclick="openOverlay('notice')">查看更多</button>
     </div></div>`;
   }
   return '';
@@ -524,9 +626,9 @@ function richmenuHTML(){
     ['bill','帳單繳費','bill'],
     ['activity','活動行程','activity'],
     ['photos','照片花絮','photo'],
+    ['vitals','生理數值','vitals'],
     ['outpatient','外診記錄','hospital'],
     ['booking','預約探訪','bell'],
-    ['notice','機構公告','megaphone'],
   ];
   const otherItems = [
     ['profile','個人設定','gear'],
@@ -555,12 +657,12 @@ function richmenuHTML(){
 function liffTopbarHTML(){
   const titles = {
     bind:'綁定服務對象', bindfail:'綁定服務對象',
-    bill:'帳單繳費', billd:'帳單明細',
+    bill:'帳單繳費', billd:'帳單收據',
     activity:'活動行程',
     photos:'照片花絮',
-    outpatient:'外診記錄', outpatientd:'外診明細',
-    booking:'預約探訪', bookingc:'預約完成',
-    notice:'機構公告', noticed:'公告內容',
+    vitals:'生理數值',
+    outpatient:'外診記錄',
+    booking:'預約探訪',
     familylist:'綁定家人',
   };
   const o = state.overlay;
@@ -572,7 +674,7 @@ function liffTopbarHTML(){
     <div class="close" onclick="closeOverlay()">✕</div>
   </div>`;
 }
-const OVERLAY_BACK_MAP = { billd:'bill', outpatientd:'outpatient', noticed:'notice', bookingc:'booking' };
+const OVERLAY_BACK_MAP = { billd:'bill' };
 function overlayBack(){
   const cur = state.overlay;
   if(OVERLAY_BACK_MAP[cur]){ state.overlay = OVERLAY_BACK_MAP[cur]; render(); document.getElementById('liffBody').scrollTop=0; }
@@ -608,8 +710,25 @@ function bindfailHTML(){
 }
 
 // ---- bill ----
+function receiptHTML(b, small){
+  return `<div class="receipt ${small?'sm':''}">
+    <div class="rc-org">${ORG_NAME}　費用收據</div>
+    <div class="rc-no">收據編號 ${b.no}</div>
+    <div class="rc-hr"></div>
+    <div class="rc-kv"><span>住民</span><span>${RESIDENT.name}</span></div>
+    <div class="rc-kv"><span>費用月份</span><span>${b.month}</span></div>
+    <div class="rc-hr"></div>
+    ${b.items.map(it=>`<div class="rc-kv"><span>${it[0]}</span><span>${it[1].toLocaleString()}</span></div>`).join('')}
+    <div class="rc-hr"></div>
+    <div class="rc-kv total"><span>合計</span><span>NT$ ${b.amount.toLocaleString()}</span></div>
+    <div class="rc-foot">
+      <span class="rc-status ${b.status==='待繳'?'warn':''}">${b.status}</span>
+      <span class="rc-stamp">機構<br>核章</span>
+    </div>
+  </div>`;
+}
 function billHTML(){
-  return `<div class="section-title">近期帳單</div>` + bills.map((b,i)=>`
+  return `<div class="section-title">近一年帳單</div>` + bills.map((b,i)=>`
     <div class="list-item" onclick="openOverlay('billd',{billIndex:${i}})">
       <div class="main"><div class="l1">${b.month}</div><div class="l2">應繳 NT$ ${b.amount.toLocaleString()}</div></div>
       <span class="badge ${b.status==='待繳'?'warn':'ok'}">${b.status}</span>
@@ -619,12 +738,9 @@ function billHTML(){
 function billdHTML(){
   const b = bills[state.billIndex||0];
   return `
-    <div class="card">
-      <div class="section-title">${b.month} 帳單明細</div>
-      ${b.items.map(it=>`<div class="kv"><div class="k">${it[0]}</div><div class="v">NT$ ${it[1].toLocaleString()}</div></div>`).join('')}
-      <div class="kv" style="border-top:2px solid var(--border);margin-top:4px;padding-top:10px;"><div class="k">合計</div><div class="v" style="color:var(--primary);">NT$ ${b.amount.toLocaleString()}</div></div>
-    </div>
-    <div class="card">
+    <div class="section-title">${b.month} 收據</div>
+    ${receiptHTML(b)}
+    <div class="card" style="margin-top:14px;">
       <div class="section-title">匯款資訊</div>
       <div style="font-size:14px;margin-bottom:12px;">${bankInfo}</div>
       <button class="btn secondary" onclick="copyBank()">複製匯款帳號</button>
@@ -632,36 +748,26 @@ function billdHTML(){
   `;
 }
 
-// ---- activity (week nav + day groups) ----
+// ---- activity (近一年條列) ----
 function activityHTML(){
   return `
-    <div class="datepnav">
-      <div class="circ">‹</div>
-      <div class="box"><span>07/19-07/25</span><span>📅</span></div>
-      <div class="circ">›</div>
+    <div class="section-title">近一年活動紀錄（${activities.length} 筆）</div>
+    <div class="tablewrap">
+      <table class="dtable">
+        <thead><tr>${activityCols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${activities.map(r=>`<tr>${r.map((c,i)=>`<td${i===0?' class="nowrap"':''}>${c}</td>`).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
     </div>
-    <div class="weekrow">
-      ${weekDays.map((d,i)=>`<div><div class="wd">${d}</div><div class="dnum ${weekDates[i]===state.weekActive?'active':''}">${weekDates[i]}</div></div>`).join('')}
-    </div>
-    ${weekDates.map((d,i)=>{
-      const sched = weekSchedule[d];
-      return `<div class="daygroup">
-        <div class="wd2">${weekDays[i]}</div>
-        <div class="dbox">${d}</div>
-        <div class="content">${ sched ? sched.map(a=>`<div class="actrow"><span class="tm2">${a[0]}</span>${a[1]}</div>`).join('') : '沒有活動' }</div>
-      </div>`;
-    }).join('')}
+    <div class="hint" style="margin-top:10px;">※ 左右滑動可查看完整欄位</div>
   `;
 }
 
-// ---- photos ----
+// ---- photos (近半年) ----
 function photosHTML(){
   return `
-    <div class="datepnav">
-      <div class="circ">‹</div>
-      <div class="box"><span>2026/07</span><span>📅</span></div>
-      <div class="circ">›</div>
-    </div>
+    <div class="section-title">近半年照片花絮</div>
     ${photoMonthGroups.map(g=>`
       <div class="photo-date">${g.date}</div>
       ${g.cats.map(c=>`
@@ -672,68 +778,59 @@ function photosHTML(){
   `;
 }
 
-// ---- outpatient ----
-function outpatientHTML(){
-  return outpatients.map((o,i)=>`
-    <div class="list-item" onclick="openOverlay('outpatientd',{opIndex:${i}})">
-      <div class="main"><div class="l1">${o.date} ${o.time}　${o.dept}</div><div class="l2">${o.hospital}・陪同：${o.companion}</div></div>
-      <span class="badge ${o.status==='已完成'?'ok':'neutral'}">${o.status}</span>
-    </div>
-  `).join('');
-}
-function outpatientdHTML(){
-  const o = outpatients[state.opIndex||0];
+// ---- vitals (近兩個月) ----
+function vitalsHTML(){
   return `
-    <div class="card">
-      <div class="kv"><div class="k">日期</div><div class="v">${o.date} ${o.time}</div></div>
-      <div class="kv"><div class="k">科別</div><div class="v">${o.dept}</div></div>
-      <div class="kv"><div class="k">院所</div><div class="v">${o.hospital}</div></div>
-      <div class="kv"><div class="k">陪同人員</div><div class="v">${o.companion}</div></div>
-      <div class="kv"><div class="k">狀態</div><div class="v">${o.status}</div></div>
+    <div class="section-title">近兩個月生理數值（${vitalsRecords.length} 筆）</div>
+    <div class="tablewrap">
+      <table class="dtable">
+        <thead><tr><th>量測時間</th><th>血壓<br>mmHg</th><th>脈搏<br>次/分</th><th>體溫<br>°C</th><th>血糖<br>mg/dL</th><th>體重<br>kg</th></tr></thead>
+        <tbody>
+          ${vitalsRecords.map(v=>`<tr>
+            <td class="nowrap">${v.dt}</td><td>${v.bp}</td><td>${v.pulse}</td><td>${v.temp}</td><td>${v.sugar}</td><td>${v.weight}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
     </div>
-    ${o.status==='已完成'
-      ? `<div class="card"><div class="section-title">就診紀錄摘要</div><div style="font-size:14px;">${o.summary}</div></div>`
-      : `<div class="infobox">如需異動看診時間，請聯絡機構協助安排。</div>`
-    }
+    <div class="hint" style="margin-top:10px;">※ 僅顯示近兩個月紀錄，更早資料請洽機構</div>
   `;
 }
 
-// ---- booking ----
+// ---- outpatient (近半年，僅兩層) ----
+function outpatientHTML(){
+  return `
+    <div class="section-title">近半年外診記錄（${outpatients.length} 筆）</div>
+    <div class="tablewrap">
+      <table class="dtable">
+        <thead><tr>${outpatientCols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${outpatients.map(o=>`<tr class="${o.hl?'hl':''}">
+            <td class="nowrap">${o.dt}</td><td>${o.hospital||''}</td><td>${o.dept||''}</td><td>${o.doctor||''}</td><td>${o.purpose}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="hint" style="margin-top:10px;">※ 如需異動看診時間，請聯絡機構協助安排</div>
+  `;
+}
+
+// ---- booking (當月時段查詢，電洽預約) ----
 function bookingHTML(){
   return `
-    <div style="font-size:14px;margin-bottom:12px;">請選擇希望的探訪時段：</div>
-    ${slots.map(s=>`<div class="slot-btn ${state.selectedSlot===s?'selected':''}" onclick="setState({selectedSlot:'${s}'})">${s}</div>`).join('')}
-    <button class="btn" style="margin-top:6px;" ${state.selectedSlot?'':'disabled'} onclick="confirmBooking()">確認預約</button>
-  `;
-}
-function confirmBooking(){ if(!state.selectedSlot) return; openOverlay('bookingc', { bookingConfirmed: state.selectedSlot }); }
-function bookingcHTML(){
-  return `
-    <div class="card" style="text-align:center;">
-      <div style="font-size:32px;margin-bottom:10px;color:var(--success);">✓</div>
-      <div style="font-weight:700;margin-bottom:10px;">預約完成</div>
-      <div class="kv"><div class="k">住民</div><div class="v">${RESIDENT.name}</div></div>
-      <div class="kv"><div class="k">探訪時段</div><div class="v">${state.bookingConfirmed}</div></div>
-      <div class="row-btns">
-        <button class="btn outline" onclick="openOverlay('booking',{selectedSlot:null})">改期</button>
-        <button class="btn danger-outline" onclick="cancelBooking()">取消預約</button>
+    <div class="section-title">${bookingMonth} 開放探訪時段</div>
+    ${bookingSlots.map(d=>`
+      <div class="slotday">
+        <div class="sd-date">${d.date}</div>
+        <div class="sd-times">${d.times.map(t=>`<span class="slot-chip">${t}</span>`).join('')}</div>
       </div>
+    `).join('')}
+    <div class="callbox">
+      <div class="cb-title">確定要預約請電洽機構</div>
+      <div class="cb-phone">${orgPhone}</div>
+      <button class="btn" onclick="toast('撥打 ${orgPhone}（示意）')">撥打電話</button>
+      <div class="cb-note">目前僅提供時段查詢，線上預約功能規劃於後續階段開放。</div>
     </div>
   `;
-}
-function cancelBooking(){ toast('已取消本次預約'); state.selectedSlot=null; state.bookingConfirmed=null; closeOverlay(); }
-
-// ---- notice ----
-function noticeHTML(){
-  return announcements.map((a,i)=>`
-    <div class="list-item" onclick="openOverlay('noticed',{annIndex:${i}})">
-      <div class="main"><div class="l1">${a.title}</div><div class="l2">${a.date}</div></div>
-    </div>
-  `).join('');
-}
-function noticedHTML(){
-  const a = announcements[state.annIndex||0];
-  return `<div class="card"><div class="section-title">${a.title}</div><div style="font-size:12px;color:var(--text-2);margin-bottom:12px;">${a.date}</div><div style="font-size:14px;line-height:1.7;">${a.content}</div></div>`;
 }
 
 // ---- family list ----
@@ -754,9 +851,9 @@ function render(){
     bill:billHTML, billd:billdHTML,
     activity:activityHTML,
     photos:photosHTML,
-    outpatient:outpatientHTML, outpatientd:outpatientdHTML,
-    booking:bookingHTML, bookingc:bookingcHTML,
-    notice:noticeHTML, noticed:noticedHTML,
+    vitals:vitalsHTML,
+    outpatient:outpatientHTML,
+    booking:bookingHTML,
     familylist:familylistHTML,
   };
   document.getElementById('liffBody').innerHTML = state.overlay ? bodyMap[state.overlay]() : '';
