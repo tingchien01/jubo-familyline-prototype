@@ -223,6 +223,36 @@
   .callbox .cb-title{font-size:14px;font-weight:700;color:var(--primary-dark);margin-bottom:6px;}
   .callbox .cb-phone{font-size:17px;font-weight:700;color:var(--text);letter-spacing:.5px;margin-bottom:12px;}
   .callbox .cb-note{font-size:11px;color:var(--text-2);margin-top:10px;line-height:1.6;}
+  /* ---- QR 綁定 ---- */
+  .scanbox{background:#1c1c1c;border-radius:14px;padding:26px 20px;text-align:center;position:relative;}
+  .scanframe{width:190px;height:190px;margin:0 auto;position:relative;}
+  .scanframe .corner{position:absolute;width:34px;height:34px;border:3px solid var(--primary-light);}
+  .scanframe .c1{top:0;left:0;border-right:none;border-bottom:none;border-radius:8px 0 0 0;}
+  .scanframe .c2{top:0;right:0;border-left:none;border-bottom:none;border-radius:0 8px 0 0;}
+  .scanframe .c3{bottom:0;left:0;border-right:none;border-top:none;border-radius:0 0 0 8px;}
+  .scanframe .c4{bottom:0;right:0;border-left:none;border-top:none;border-radius:0 0 8px 0;}
+  .scanframe .laser{position:absolute;left:8px;right:8px;top:50%;height:2px;background:var(--primary-light);
+    box-shadow:0 0 8px var(--primary);opacity:.9;animation:scanmove 2s ease-in-out infinite;}
+  @keyframes scanmove{0%{top:12%}50%{top:86%}100%{top:12%}}
+  .scanbox .hintw{color:#DDD;font-size:12.5px;margin-top:18px;line-height:1.6;}
+  .qrsample{width:120px;height:120px;margin:14px auto 0;background:#fff;border-radius:6px;padding:8px;}
+  .qrsample svg{width:100%;height:100%;}
+
+  /* ---- 綁定確認卡 ---- */
+  .confirmcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 18px;text-align:center;}
+  .confirmcard .cc-icon{width:52px;height:52px;border-radius:50%;background:var(--primary-lighter);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 12px;color:var(--primary-dark);}
+  .confirmcard .cc-icon svg{width:26px;height:26px;}
+  .confirmcard .cc-lead{font-size:13px;color:var(--text-2);margin-bottom:14px;}
+  .confirmcard .cc-block{background:var(--primary-lighter);border-radius:10px;padding:14px 16px;text-align:left;margin-bottom:6px;}
+  .confirmcard .cc-kv{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;}
+  .confirmcard .cc-kv .k{color:var(--text-2);}
+  .confirmcard .cc-kv .v{font-weight:700;color:var(--text);}
+  .confirmcard .cc-id{font-size:16px;font-weight:700;color:var(--primary-dark);}
+  .confirmcard .cc-warn{font-size:11.5px;color:var(--text-2);margin:12px 0 4px;line-height:1.6;}
+  .altlink{text-align:center;margin-top:18px;font-size:13px;color:#2F6FB0;cursor:pointer;}
+  .bindtag{display:inline-block;font-size:10.5px;font-weight:700;color:var(--primary-dark);
+    background:var(--primary-lighter);border:1px solid var(--primary-light);border-radius:10px;padding:2px 8px;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -247,9 +277,17 @@
 <script>
 // ---------- Demo data ---------- // TODO: 串接真實 API
 const RESIDENT = { name:'簡智齡', room:'A棟302室' };
-const FAMILY = { name:'陳美玲', relation:'女兒' };
-const VALID_BIRTH = '1938-05-12';
-const VALID_ID = 'A123456789';
+// 主系統該住民的家屬聯絡人清單（對應鎧琳/住宿2.0 聯絡人資料）
+const RESIDENT_ID = 'O200074819';
+const contacts = [
+  { cid:'23033', name:'陳美玲', relation:'女兒', phone:'0980-361362', primary:true  },
+  { cid:'23034', name:'陳建宏', relation:'兒子', phone:'0979-116683', primary:false },
+  { cid:'23035', name:'簡淑芬', relation:'女兒', phone:'0919-132529', primary:true  },
+  { cid:'23036', name:'林素娥', relation:'媳婦', phone:'02-26476158', primary:false },
+  { cid:'23037', name:'葉旭',   relation:'孫子', phone:'0980-337171', primary:false },
+];
+// 機構從主系統「LINE 綁定代碼」發給陳美玲的專屬 QR，內含 residentId + contactId
+const MY_QR_CID = '23033';
 const ORG_NAME = '智齡住宿好安心';
 const LIFF_URL = 'release-family-line-web.jubo.health';
 
@@ -369,7 +407,9 @@ var state = {
   warnDismissed: false,
   messages: [],
   clock: { h:9, m:54 },
-  form: { birth:'', idno:'' },
+  pendingCid: null,
+  boundContact: null,
+  phoneInput: '',
   billIndex: 0,
 };
 
@@ -408,17 +448,7 @@ function toast(msg){
   window.__toastTimer = setTimeout(()=>{ t.style.display='none'; }, 2200);
 }
 function copyBank(){ toast('已複製匯款帳號：' + bankInfo); }
-function updateForm(field, val){ state.form[field] = val; }
 
-function submitBinding(){
-  if(state.form.birth === VALID_BIRTH && (state.form.idno||'').toUpperCase() === VALID_ID){
-    state.stage = 'bound';
-    closeOverlay();
-  } else {
-    state.overlay = 'bindfail';
-    render();
-  }
-}
 
 // ---------- Rich menu tap -> append conversation ----------
 const FEATURE_LABEL = {
@@ -488,18 +518,18 @@ function threadHTML(){
   `;
 
   if(state.stage === 'unbound'){
-    html += `<div class="row"><div class="av">🏠</div><div class="bubble-text">請點擊下方按鈕開始綁定住民身分。<div><button class="btn" style="margin-top:8px;" onclick="openOverlay('bind')">開始綁定</button></div></div></div>`;
+    html += `<div class="row"><div class="av">🏠</div><div class="bubble-text">請掃描機構提供的 <b>LINE 綁定 QR Code</b> 完成身分綁定。<div><button class="btn" style="margin-top:8px;" onclick="openOverlay('scan')">掃描綁定 QR Code</button></div></div></div>`;
     return html;
   }
 
   html += `
     <div class="row"><div class="av">🏠</div><div class="bubble-text">
-      <div style="font-weight:700;margin-bottom:8px;">綁定完成</div>
-      <div style="font-size:12.5px;"><b>姓名</b>　${RESIDENT.name}</div>
-      <div style="font-size:12.5px;"><b>關係</b>　${FAMILY.relation}</div>
+      <div style="font-weight:700;margin-bottom:8px;">綁定完成<span class="bindtag">已綁定 LINE</span></div>
+      <div style="font-size:12.5px;"><b>住民</b>　${RESIDENT.name}（${RESIDENT.room}）</div>
+      <div style="font-size:12.5px;"><b>身分</b>　${ME().relation}　${ME().name}</div>
     </div></div>
     <div class="time" style="text-align:right;margin:2px 4px 12px;">下午 5:26</div>
-    <div class="row"><div class="av">🏠</div><div class="bubble-text">${FAMILY.name} 您好，這是 ${RESIDENT.name} 的家屬服務，請由下方選單查詢所需資訊。</div></div>
+    <div class="row"><div class="av">🏠</div><div class="bubble-text">${ME().name} 您好，這是 ${RESIDENT.name} 的家屬服務，請由下方選單查詢所需資訊。</div></div>
     <div class="time" style="text-align:right;margin:2px 4px 12px;">下午 5:26</div>
   `;
 
@@ -594,11 +624,12 @@ function cardHTML(key){
 function profileCardHTML(){
   return `<div class="flexcard"><div class="strip"></div><div class="body">
     <div class="fc-title">我的資料</div>
-    <div class="fc-row"><span class="fk">姓名</span><span class="fv">${FAMILY.name}</span></div>
-    <div class="fc-row"><span class="fk">性別</span><span class="fv">女性</span></div>
+    <div class="fc-row"><span class="fk">姓名</span><span class="fv">${ME().name}</span></div>
+    <div class="fc-row"><span class="fk">與住民關係</span><span class="fv">${ME().relation}</span></div>
+    <div class="fc-row"><span class="fk">聯絡電話</span><span class="fv">${ME().phone}</span></div>
     <div class="fc-row"><span class="fk">個案</span><span class="fv">${RESIDENT.name}</span></div>
-    <div class="fc-row"><span class="fk">關係</span><span class="fv">${FAMILY.relation}</span></div>
-    <button class="fc-more" onclick="openOverlay('bind')">綁定其他住民</button>
+    <div class="fc-row"><span class="fk">LINE 綁定</span><span class="fv" style="color:var(--primary-dark);">已綁定</span></div>
+    <button class="fc-more" onclick="openOverlay('scan')">綁定其他住民</button>
   </div></div>`;
 }
 
@@ -639,7 +670,8 @@ function richmenuHTML(){
 // ---------- LIFF overlay ----------
 function liffTopbarHTML(){
   const titles = {
-    bind:'綁定服務對象', bindfail:'綁定服務對象',
+    scan:'掃描綁定 QR Code', bindconfirm:'確認綁定身分',
+    bindphone:'手機號碼綁定', bindfail:'綁定失敗',
     bill:'帳單繳費', billd:'帳單收據',
     activity:'活動行程',
     photos:'照片花絮',
@@ -656,35 +688,103 @@ function liffTopbarHTML(){
     <div class="close" onclick="closeOverlay()">✕</div>
   </div>`;
 }
-const OVERLAY_BACK_MAP = { billd:'bill' };
+function ME(){ return state.boundContact || contacts.find(c=>c.cid===MY_QR_CID); }
+const OVERLAY_BACK_MAP = { billd:'bill', bindconfirm:'scan', bindphone:'scan', bindfail:'bindphone' };
 function overlayBack(){
   const cur = state.overlay;
   if(OVERLAY_BACK_MAP[cur]){ state.overlay = OVERLAY_BACK_MAP[cur]; render(); document.getElementById('liffBody').scrollTop=0; }
   else { closeOverlay(); }
 }
 
-// ---- bind ----
-function bindHTML(){
+// ---- 掃描綁定 QR ----
+function scanHTML(){
   return `
-    <div style="font-weight:700;font-size:15px;margin-bottom:14px;">請輸入服務對象資料</div>
-    <label class="field-label" style="margin-top:0;">身份證號*</label>
-    <input type="text" placeholder="" value="${state.form.idno}" oninput="updateForm('idno', this.value)"/>
-    <label class="field-label">西元出生日期*</label>
-    <input type="date" value="${state.form.birth}" onchange="updateForm('birth', this.value)"/>
-    <div class="hint">1990年1月1日出生則輸入1990/01/01</div>
-    <div style="margin:16px 0;font-size:13px;"><input type="checkbox" id="agreecb" style="width:auto;vertical-align:middle;"/> 我已詳閱並同意 <span style="color:#2F6FB0;">服務條款</span></div>
-    <button class="btn pill" onclick="submitBinding()">下一步</button>
-    <div class="infobox">測試資料：生日 1938/05/12，身分證字號 A123456789</div>
+    <div class="scanbox">
+      <div class="scanframe">
+        <div class="corner c1"></div><div class="corner c2"></div>
+        <div class="corner c3"></div><div class="corner c4"></div>
+        <div class="laser"></div>
+        <div class="qrsample">${qrSvg()}</div>
+      </div>
+      <div class="hintw">請將機構提供的<br><b>LINE 綁定 QR Code</b> 對準框內</div>
+    </div>
+    <button class="btn" style="margin-top:18px;" onclick="simulateScan()">（示意）模擬掃描成功</button>
+    <div class="altlink" onclick="openOverlay('bindphone',{phoneInput:''})">無法掃描？改用手機號碼綁定</div>
+    <div class="infobox">綁定 QR Code 由機構於系統中該位家屬的「LINE 綁定代碼」產生後提供，效期 7 天，綁定後即失效。</div>
   `;
+}
+function qrSvg(){
+  const cells=[[0,0],[1,0],[2,0],[4,0],[6,0],[0,1],[2,1],[4,1],[5,1],[6,1],[0,2],[1,2],[2,2],[3,2],[6,2],
+    [4,3],[5,3],[0,4],[2,4],[3,4],[4,4],[6,4],[0,5],[1,5],[4,5],[6,5],[0,6],[2,6],[3,6],[5,6],[6,6]];
+  return `<svg viewBox="0 0 7 7">${cells.map(c=>`<rect x="${c[0]}" y="${c[1]}" width="1" height="1" fill="#1c1c1c"/>`).join('')}</svg>`;
+}
+function findContact(cid){ return contacts.find(c=>c.cid===cid); }
+function simulateScan(){
+  openOverlay('bindconfirm', { pendingCid: MY_QR_CID });
+}
+
+// ---- 綁定確認卡（防呆：綁定前確認身分） ----
+function bindconfirmHTML(){
+  const c = findContact(state.pendingCid);
+  if(!c) return `<div class="infobox">綁定代碼無效，請聯絡機構重新產生。</div>`;
+  return `
+    <div class="confirmcard">
+      <div class="cc-icon"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+      <div class="cc-lead">已讀取綁定代碼，請確認以下身分</div>
+      <div class="cc-block">
+        <div class="cc-kv"><span class="k">住民</span><span class="v">${RESIDENT.name}</span></div>
+        <div class="cc-kv"><span class="k">房號</span><span class="v">${RESIDENT.room}</span></div>
+        <div class="cc-kv" style="border-top:1px solid var(--primary-light);margin-top:6px;padding-top:10px;">
+          <span class="k">您的身分</span><span class="cc-id">${c.relation}　${c.name}</span>
+        </div>
+        <div class="cc-kv"><span class="k">聯絡電話</span><span class="v">${c.phone}</span></div>
+      </div>
+      <div class="cc-warn">若以上資料不是您本人，請勿綁定並聯絡機構確認。</div>
+      <div class="row-btns">
+        <button class="btn outline" onclick="rejectBind()">不是我</button>
+        <button class="btn" onclick="confirmBind()">確認綁定</button>
+      </div>
+    </div>
+  `;
+}
+function confirmBind(){
+  const c = findContact(state.pendingCid);
+  state.boundContact = c;
+  state.stage = 'bound';
+  closeOverlay();
+}
+function rejectBind(){
+  toast('已中止綁定，請聯絡機構確認');
+  openOverlay('scan', { pendingCid:null });
+}
+
+// ---- 備援：手機號碼綁定 ----
+function bindphoneHTML(){
+  return `
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px;">以手機號碼綁定</div>
+    <div class="hint" style="margin-bottom:16px;">請輸入您留給機構的手機號碼，系統將比對聯絡人資料。</div>
+    <label class="field-label" style="margin-top:0;">手機號碼*</label>
+    <input type="text" placeholder="0912345678" value="${state.phoneInput||''}" oninput="setPhone(this.value)"/>
+    <button class="btn pill" style="margin-top:20px;" onclick="submitPhone()">下一步</button>
+    <div class="altlink" onclick="openOverlay('scan')">改用掃描 QR Code</div>
+    <div class="infobox">測試資料：0980361362（陳美玲・女兒）／0979116683（陳建宏・兒子）</div>
+  `;
+}
+function setPhone(v){ state.phoneInput = v; }
+function submitPhone(){
+  const d = (state.phoneInput||'').replace(/\D/g,'');
+  const hit = d.length>=8 ? contacts.find(c=>c.phone.replace(/\D/g,'')===d) : null;
+  if(hit) openOverlay('bindconfirm', { pendingCid: hit.cid });
+  else { state.overlay='bindfail'; render(); }
 }
 function bindfailHTML(){
   return `
     <div class="card" style="text-align:center;">
       <div style="font-size:32px;margin-bottom:10px;">⚠️</div>
-      <div style="font-weight:700;color:var(--danger);margin-bottom:8px;">查無符合的住民資料</div>
-      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;">請確認生日與身分證字號是否正確</div>
+      <div style="font-weight:700;color:var(--danger);margin-bottom:8px;">查無此手機號碼的聯絡人資料</div>
+      <div style="font-size:13px;color:var(--text-2);margin-bottom:16px;line-height:1.7;">請確認號碼是否為您留給機構的聯絡電話，或請機構提供您的 LINE 綁定 QR Code。</div>
       <div class="row-btns">
-        <button class="btn secondary" onclick="state.form={birth:'',idno:''};openOverlay('bind')">重新輸入</button>
+        <button class="btn secondary" onclick="openOverlay('bindphone',{phoneInput:''})">重新輸入</button>
         <button class="btn outline" onclick="toast('已通知機構客服，將盡快與您聯繫')">聯絡機構協助</button>
       </div>
     </div>
@@ -824,7 +924,8 @@ function render(){
 
   document.getElementById('liffTopbar').innerHTML = liffTopbarHTML();
   const bodyMap = {
-    bind:bindHTML, bindfail:bindfailHTML,
+    scan:scanHTML, bindconfirm:bindconfirmHTML,
+    bindphone:bindphoneHTML, bindfail:bindfailHTML,
     bill:billHTML, billd:billdHTML,
     activity:activityHTML,
     photos:photosHTML,
